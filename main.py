@@ -1,4 +1,4 @@
-import pygame,sys
+import pygame,sys, random
 
 #initialize pygame
 pygame.init()
@@ -16,6 +16,20 @@ def draw_floor():
     screen.blit(floor_surface,(floor_x_pos,430))
     screen.blit(floor_surface,(floor_x_pos+378,430))
 
+def create_pipe():
+    random_pip_pos = random.choice(pipe_height)
+    bottom_pipe = pipe_surface.get_rect(midtop = (500,random_pip_pos))
+    top_pipe = pipe_surface.get_rect(midbottom = (700, random_pip_pos - 300))
+    return bottom_pipe, top_pipe
+
+def move_pipes(pipes):
+    for pipe in pipes:
+        pipe.centerx -= 5
+    return pipes
+
+def draw_pipes(pipes):
+    for pipe in pipes:
+        screen.blit(pipe_surface,pipe)
 
 # load images
 bg_surface = pygame.image.load("./assets/sprites/background-day.png").convert()
@@ -31,9 +45,13 @@ bird_surface = pygame.image.load("./assets/sprites/bluebird-midflap.png")
 bird_surface = pygame.transform.scale2x(bird_surface)
 bird_rect = bird_surface.get_rect(center=( 100,256 ))
 
-# pip surface
-
-
+# pipe surface
+pipe_surface = pygame.image.load("./assets/sprites/pipe-green.png")
+pipe = pygame.transform.scale2x(pipe_surface)
+pipe_list = []
+SPAWNPIPE = pygame.USEREVENT
+pygame.time.set_timer(SPAWNPIPE,1200)
+pipe_height = [400, 600, 800]
 
 #game loop 
 while True:
@@ -45,11 +63,21 @@ while True:
             if event.key ==  pygame.K_SPACE:
                 bird_movement = 0
                 bird_movement -= 12
+        if event.type == SPAWNPIPE:
+            pipe_list.extend(create_pipe())
 
     screen.blit(bg_surface, (0,0))
+
+    #Bird
     bird_movement +=  gravity
     bird_rect.centery += bird_movement
     screen.blit(bird_surface,bird_rect)
+
+    # Pipes
+    pipe_list = move_pipes(pipe_list)
+    draw_pipes(pipe_list)
+
+    #floor
     floor_x_pos -= 1
     draw_floor()
     if floor_x_pos <= -378:
